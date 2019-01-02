@@ -7,9 +7,17 @@
  * @attribute originId {string} - for receipt
  */
 
+var uuidPrefix = 1;
+if (typeof window !== 'undefined') {
+  if (window.POST_MESSAGE_ID_PREFIX) {
+    uuidPrefix = window.POST_MESSAGE_ID_PREFIX + 1;
+  }
+  window.POST_MESSAGE_ID_PREFIX = uuidPrefix;
+}
+
 var uuid = 0;
 var idCreator = function () {
-  return (++uuid).toString();
+  return uuidPrefix.toString() + '_' + (++uuid).toString();
 }
 
 function Message (messageString) {

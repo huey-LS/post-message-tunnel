@@ -1,15 +1,29 @@
 {
-  "name": "post-messgage-tunnel",
-  "version": "0.1.0",
+  "name": "post-message-tunnel",
+  "version": "0.0.1",
   "description": "",
+  "keywords": [
+    "postMessage",
+    "browser"
+  ],
+  "files": [
+    "lib",
+    "es",
+    "src",
+    "index.js"
+  ],
   "main": "index.js",
   "scripts": {
     "clean": "rm -fr lib",
     "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir lib",
     "build": "npm run clean && npm run build:commonjs"
   },
-  "author": "lsxyz@gmail.com",
-  "email": "lsxyz@gmail.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ignous/post-message-tunnel.git"
+  },
+  "author": "lsxyz7@gmail.com",
+  "email": "lsxyz7@gmail.com",
   "license": "MIT",
   "devDependencies": {
     "@babel/cli": "^7.0.0",
