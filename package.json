@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "keywords": [
-    "postMessage",
+    "postmessage",
     "browser"
   ],
   "files": [
@@ -14,9 +14,11 @@
   ],
   "main": "index.js",
   "scripts": {
-    "clean": "rm -fr lib",
-    "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir lib",
-    "build": "npm run clean && npm run build:commonjs"
+    "test": "mocha",
+    "clean": "rm -fr lib dist",
+    "build:dist": "cross-env BABEL_ENV=dist rollup -c rollup.config.js",
+    "build:es": "cross-env BABEL_ENV=es babel src --out-dir lib",
+    "build": "npm run clean && npm run build:dist && npm run build:es"
   },
   "repository": {
     "type": "git",
@@ -29,7 +31,11 @@
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
+    "babel-plugin-transform-remove-console": "^6.9.4",
     "cross-env": "^5.2.0",
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "puppeteer": "^1.11.0",
+    "rollup": "^1.1.2",
+    "rollup-plugin-babel": "^4.3.2"
   }
 }

@@ -38,11 +38,14 @@ MessageTunnel.prototype.listenMessage = function () {
     // var originHostname = getHostname(origin);
     var data = event.data;
 
+    if (!origin || origin === 'null') origin = '*';
+
+    console.log('message: receive unresolved message', data);
     if (isInWhiteList(origin, _self.whiteList)) {
       var message = new Message(data);
       message.setSource(source);
       message.setOrigin(origin);
-      console.log(location.href, 'message: receive', message);
+      console.log('message: receive', message);
       var receiptHasCalled = false;
       var receipt = function (content) {
         if (receiptHasCalled) {
@@ -64,10 +67,13 @@ MessageTunnel.prototype.listenMessage = function () {
         receipt();
       } else if (message.name === EVENT_NAME_RECEIPT) {
         // 如果是回执
+        console.log('message: goto do receipt')
         _self.doReceiptCallback(message);
       } else {
         // 只响应对应的目标的 message
+        console.log('message: goto custom action')
         if (!_self.target || source === _self.target) {
+          console.log('message: emit custom action')
           _self.emit(message, receipt);
         }
       }
@@ -75,8 +81,10 @@ MessageTunnel.prototype.listenMessage = function () {
   }
 
   if(window.addEventListener) {
+    console.log('use window.addEventListener');
     window.addEventListener('message', callback, false)
   } else if (window.attachEvent) {
+    console.log('use window.attachEvent');
     window.attachEvent('message', callback);
   }
 }
@@ -84,8 +92,10 @@ MessageTunnel.prototype.listenMessage = function () {
 MessageTunnel.prototype.createTarget = function (target, origin) {
   var _self = this;
   console.log('message: create target', target, origin)
+  if (this.targetIframe || this._target) return false;
   if (typeof target === 'string') {
     this._targetOrigin = getOrigin(target)
+    console.log('1_targetOrigin', this._targetOrigin);
     createIframe(target, function (iframe) {
       console.log('message: iframe onload', target)
       _self.targetIframe = iframe;
@@ -94,6 +104,7 @@ MessageTunnel.prototype.createTarget = function (target, origin) {
   } else {
     _self.target = target;
     _self._targetOrigin = origin;
+    console.log('2_targetOrigin', this._targetOrigin);
   }
 }
 
@@ -106,6 +117,7 @@ MessageTunnel.prototype.emit = function (message, receipt) {
 }
 
 MessageTunnel.prototype.post = function (name, content, callback) {
+  console.log('message will set post', name, content, callback);
   var _self = this;
   if (typeof content === 'function') {
     callback = content;
@@ -113,16 +125,14 @@ MessageTunnel.prototype.post = function (name, content, callback) {
   }
 
   var message = new Message();
-    message.setName(name);
-    message.setContent(content);
+  message.setName(name);
+  message.setContent(content);
 
-  if (this.target) {
-    this.postMessage(message, callback);
-  } else {
-    this.ready(function () {
-      _self.postMessage(message, callback);
-    })
-  }
+  console.log('message set post', message, callback)
+
+  this.ready(function () {
+    _self.postMessage(message, callback);
+  })
 }
 
 MessageTunnel.prototype.postMessage = function (message, callback) {
@@ -140,6 +150,8 @@ MessageTunnel.prototype.checkTargetReady = function () {
     _self.target = _self.targetIframe.contentWindow;
     _self.doFinishQueue();
   });
+
+  console.log('message: will post check ready message');
   this.targetIframe.contentWindow.postMessage(message.format(), this._targetOrigin);
 
   this.__checkReadyCount = this.__checkReadyCount + 1;
@@ -157,20 +169,33 @@ MessageTunnel.prototype.ready = function (fn) {
 }
 
 MessageTunnel.prototype.postReceipt = function (message) {
-  message.source.postMessage(message.format(), message.origin);
+  console.log('message: will post receipt', message);
+  try {
+    message.source.postMessage(message.format(), message.origin);
+  } catch (e) {
+    console.error(e);
+    console.log(message.format(), message.origin)
+  }
 }
 
 MessageTunnel.prototype.addCallbackWaitingReceipt = function (message, callback) {
   var id = message.id;
   this._callbackWaitingReceipt[id] = callback;
+  console.log('message add receipt callback', id, callback);
 }
 
 MessageTunnel.prototype.doReceiptCallback = function (message) {
   var id = message.originId;
   var callback = this._callbackWaitingReceipt[id];
+  console.log('message do receipt', id, callback);
   delete this._callbackWaitingReceipt[id];
   if (typeof callback === 'function') {
-    callback({ message: message });
+    console.log('message do receipt callback', id, message);
+    try {
+      callback({ message: message });
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 
@@ -200,10 +225,11 @@ function getOrigin (url) {
     }
   }
 
-  return origin;
+  return origin || '*';
 }
 
 function isInWhiteList (origin, whiteList) {
+  if (~whiteList.indexOf('*')) return true;
   var originWithoutPort = origin.replace(/\:[0-9]+$/, '')
   var i = 0;
   var len = whiteList.length;

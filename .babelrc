@@ -1,11 +1,33 @@
 {
-  "presets": [
-    [
-      "@babel/preset-env", {
-        "targets": { "node": "current" },
-        "useBuiltIns": "entry"
-      }
-    ]
-  ]
+  "env": {
+    "dist": {
+      "presets": [
+        [
+          "@babel/preset-env", {
+            "loose": true,
+            "modules": false,
+            "targets": { "browsers": "" },
+            "useBuiltIns": "entry"
+          }
+        ]
+      ],
+      "plugins": [
+        ["transform-remove-console", { "exclude": [ "error", "warn" ] }]
+      ]
+    },
+    "es": {
+      "presets": [
+        [
+          "@babel/preset-env", {
+            "targets": { "node": "current" },
+            "useBuiltIns": "entry"
+          }
+        ]
+      ],
+      "plugins": [
+        ["transform-remove-console", { "exclude": [ "error", "warn" ] }]
+      ]
+    }
+  }
 }
 

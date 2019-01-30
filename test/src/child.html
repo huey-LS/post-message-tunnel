@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<script type="text/javascript" src="../../dist/post-message-tunnel.js"></script>
+<script>
+var messageTunnel = new PostMessageTunnel({
+  whiteList: ['*'],
+  isServer: true
+})
+
+messageTunnel.subscribe(function ({ message, receipt }) {
+  var name = message.name;
+  if (name === 'getUser') {
+    receipt({ name: 'user1' })
+  }
+})
+</script>

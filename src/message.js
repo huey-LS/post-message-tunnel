@@ -39,7 +39,7 @@ Message.prototype.autoCreate = function () {
 Message.prototype.setOriginMessage = function (message) {
   this.originId = message.id;
   this.source = message.source;
-  this.origin = message.origin;
+  this.origin = message.origin || '*';
 }
 
 Message.prototype.setName = function (name) {
@@ -55,7 +55,7 @@ Message.prototype.setSource = function (source) {
 }
 
 Message.prototype.setOrigin = function (origin) {
-  this.origin = origin;
+  this.origin = origin || '*';
 }
 
 Message.prototype.parse = function (messageString) {

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<script type="text/javascript" src="../../dist/post-message-tunnel.js"></script>
+<script type="text/javascript">
+window.init = async function () {
+  var messageTunnel = new PostMessageTunnel({
+    whiteList: ['*'],
+    target: './child.html'
+  })
+
+
+  messageTunnel.post('getUser', function ({ message }) {
+    window.assert(message.content.name);
+  })
+}
+</script>
