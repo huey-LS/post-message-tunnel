@@ -102,8 +102,9 @@ MessageTunnel.prototype.createTarget = function (target, origin) {
       _self.checkTargetReady();
     });
   } else {
-    _self.targetIframe = iframe;
     _self._targetOrigin = origin;
+    // logger.log('message: iframe onload', target);
+    _self.targetIframe = target;
     _self.checkTargetReady();
   }
 }
@@ -205,12 +206,28 @@ function createIframe (url, callback) {
   var iframe = document.createElement('iframe');
   iframe.style.display = 'none';
   iframe.src = url;
-  iframe.onload = function () {
+
+  return checkIframeReady(iframe, callback);
+}
+
+function checkIframeReady (iframe, callback) {
+  if (
+    iframe.readyState &&
+    (
+      iframe.readyState === 'complete'
+      || iframe.readyState === 'interactive'
+    )
+  ) {
     if (typeof callback === 'function') {
       callback(iframe)
     }
+  } else {
+    iframe.onload = function () {
+      if (typeof callback === 'function') {
+        callback(iframe)
+      }
+    }
   }
-  document.body.appendChild(iframe);
   return iframe;
 }
 
