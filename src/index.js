@@ -12,6 +12,9 @@ var MessageTunnel = function (options) {
   this.maxCheckReady = options.maxCheckReady || 2;
   this.checkReadyTime = options.checkReadyTime || 1000;
   this.__checkReadyCount = 0;
+  this.__listeners = [];
+  this.whiteList = options.whiteList || [];
+  this._callbackWaitingReceipt = {};
 
   if (options.target) {
     this.createTarget(options.target, options.origin)
@@ -24,10 +27,6 @@ var MessageTunnel = function (options) {
   } else {
     this.listenMessage();
   }
-
-  this.__listeners = [];
-  this.whiteList = options.whiteList || [];
-  this._callbackWaitingReceipt = {};
 }
 
 MessageTunnel.prototype.listenMessage = function () {
@@ -105,7 +104,9 @@ MessageTunnel.prototype.createTarget = function (target, origin) {
     _self._targetOrigin = origin;
     // logger.log('message: iframe onload', target);
     _self.targetIframe = target;
-    _self.checkTargetReady();
+    setTimeout(function () {
+      _self.checkTargetReady();
+    }, 0);
   }
 }
 
