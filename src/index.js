@@ -1,5 +1,6 @@
 import Message from './message';
 import PubSub from './pubsub';
+import { logger } from './log'
 
 var EVENT_NAME_CHECK_READY = '@message/check_ready';
 var EVENT_NAME_RECEIPT = '@message/receipt';
@@ -15,11 +16,11 @@ var MessageTunnel = function (options) {
   if (options.target) {
     this.createTarget(options.target, options.origin)
   } else if (!options.isServer){
-    console.log('message: can not post without target')
+    logger.log('message: can not post without target')
   }
 
   if (!options.whiteList) {
-    console.warn('message: no whiteList is not safe. Will not start listening')
+    logger.warn('message: no whiteList is not safe. Will not start listening')
   } else {
     this.listenMessage();
   }
@@ -40,16 +41,16 @@ MessageTunnel.prototype.listenMessage = function () {
 
     if (!origin || origin === 'null') origin = '*';
 
-    console.log('message: receive unresolved message', data);
+    logger.log('message: receive unresolved message', data);
     if (isInWhiteList(origin, _self.whiteList)) {
       var message = new Message(data);
       message.setSource(source);
       message.setOrigin(origin);
-      console.log('message: receive', message);
+      logger.log('message: receive', message);
       var receiptHasCalled = false;
       var receipt = function (content) {
         if (receiptHasCalled) {
-          console.log('message: receipt cannot be called multiple times');
+          logger.log('message: receipt cannot be called multiple times');
           return false;
         }
         receiptHasCalled = true;
@@ -67,13 +68,13 @@ MessageTunnel.prototype.listenMessage = function () {
         receipt();
       } else if (message.name === EVENT_NAME_RECEIPT) {
         // 如果是回执
-        console.log('message: goto do receipt')
+        logger.log('message: goto do receipt')
         _self.doReceiptCallback(message);
       } else {
         // 只响应对应的目标的 message
-        console.log('message: goto custom action')
+        logger.log('message: goto custom action')
         if (!_self.target || source === _self.target) {
-          console.log('message: emit custom action')
+          logger.log('message: emit custom action')
           _self.emit(message, receipt);
         }
       }
@@ -81,30 +82,29 @@ MessageTunnel.prototype.listenMessage = function () {
   }
 
   if(window.addEventListener) {
-    console.log('use window.addEventListener');
+    logger.log('use window.addEventListener');
     window.addEventListener('message', callback, false)
   } else if (window.attachEvent) {
-    console.log('use window.attachEvent');
+    logger.log('use window.attachEvent');
     window.attachEvent('message', callback);
   }
 }
 
 MessageTunnel.prototype.createTarget = function (target, origin) {
   var _self = this;
-  console.log('message: create target', target, origin)
+  logger.log('message: create target', target, origin);
   if (this.targetIframe || this._target) return false;
   if (typeof target === 'string') {
     this._targetOrigin = getOrigin(target)
-    console.log('1_targetOrigin', this._targetOrigin);
     createIframe(target, function (iframe) {
-      console.log('message: iframe onload', target)
+      logger.log('message: iframe onload', target);
       _self.targetIframe = iframe;
       _self.checkTargetReady();
     });
   } else {
-    _self.target = target;
+    _self.targetIframe = iframe;
     _self._targetOrigin = origin;
-    console.log('2_targetOrigin', this._targetOrigin);
+    _self.checkTargetReady();
   }
 }
 
@@ -117,7 +117,7 @@ MessageTunnel.prototype.emit = function (message, receipt) {
 }
 
 MessageTunnel.prototype.post = function (name, content, callback) {
-  console.log('message will set post', name, content, callback);
+  logger.log('message will set post', name, content, callback);
   var _self = this;
   if (typeof content === 'function') {
     callback = content;
@@ -128,7 +128,7 @@ MessageTunnel.prototype.post = function (name, content, callback) {
   message.setName(name);
   message.setContent(content);
 
-  console.log('message set post', message, callback)
+  logger.log('message set post', message, callback)
 
   this.ready(function () {
     _self.postMessage(message, callback);
@@ -136,7 +136,7 @@ MessageTunnel.prototype.post = function (name, content, callback) {
 }
 
 MessageTunnel.prototype.postMessage = function (message, callback) {
-  console.log('message: will post message', message);
+  logger.log('message: will post message', message);
   this.addCallbackWaitingReceipt(message, callback);
   this.target.postMessage(message.format(), this._targetOrigin);
 }
@@ -151,7 +151,7 @@ MessageTunnel.prototype.checkTargetReady = function () {
     _self.doFinishQueue();
   });
 
-  console.log('message: will post check ready message');
+  logger.log('message: will post check ready message');
   this.targetIframe.contentWindow.postMessage(message.format(), this._targetOrigin);
 
   this.__checkReadyCount = this.__checkReadyCount + 1;
@@ -169,32 +169,32 @@ MessageTunnel.prototype.ready = function (fn) {
 }
 
 MessageTunnel.prototype.postReceipt = function (message) {
-  console.log('message: will post receipt', message);
+  logger.log('message: will post receipt', message);
   try {
     message.source.postMessage(message.format(), message.origin);
   } catch (e) {
-    console.error(e);
-    console.log(message.format(), message.origin)
+    logger.error(e);
+    logger.log(message.format(), message.origin)
   }
 }
 
 MessageTunnel.prototype.addCallbackWaitingReceipt = function (message, callback) {
   var id = message.id;
   this._callbackWaitingReceipt[id] = callback;
-  console.log('message add receipt callback', id, callback);
+  logger.log('message add receipt callback', id, callback);
 }
 
 MessageTunnel.prototype.doReceiptCallback = function (message) {
   var id = message.originId;
   var callback = this._callbackWaitingReceipt[id];
-  console.log('message do receipt', id, callback);
+  logger.log('message do receipt', id, callback);
   delete this._callbackWaitingReceipt[id];
   if (typeof callback === 'function') {
-    console.log('message do receipt callback', id, message);
+    logger.log('message do receipt callback', id, message);
     try {
       callback({ message: message });
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
   }
 }

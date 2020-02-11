@@ -7,16 +7,6 @@ describe('browser', function () {
     (async () => {
       const browser = await puppeteer.launch();
       const page = await browser.newPage();
-      // page.on("error", function(err) {
-      //   let theTempValue = err.toString();
-      //   console.log("Page error: " + theTempValue);
-      // })
-
-      // page.on("pageerror", function(err) {
-      //   let theTempValue = err.toString();
-      //   console.log("Page error: " + theTempValue);
-      // })
-
 
       page.on('console', message => {
         let type = message.type();

@@ -1,6 +1,6 @@
 {
   "name": "post-message-tunnel",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "keywords": [
     "postmessage",
@@ -10,7 +10,8 @@
     "lib",
     "es",
     "src",
-    "index.js"
+    "index.js",
+    "index.d.ts"
   ],
   "main": "index.js",
   "scripts": {
@@ -18,7 +19,8 @@
     "clean": "rm -fr lib dist",
     "build:dist": "cross-env BABEL_ENV=dist rollup -c rollup.config.js",
     "build:es": "cross-env BABEL_ENV=es babel src --out-dir lib",
-    "build": "npm run clean && npm run build:dist && npm run build:es"
+    "build": "npm run clean && npm run build:dist && npm run build:es",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
