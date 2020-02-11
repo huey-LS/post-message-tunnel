@@ -102,11 +102,10 @@ MessageTunnel.prototype.createTarget = function (target, origin) {
     });
   } else {
     _self._targetOrigin = origin;
-    // logger.log('message: iframe onload', target);
-    _self.targetIframe = target;
-    setTimeout(function () {
+    checkIframeReady(target, (iframe) => {
+      _self.targetIframe = iframe;
       _self.checkTargetReady();
-    }, 0);
+    })
   }
 }
 
@@ -219,6 +218,10 @@ function checkIframeReady (iframe, callback) {
       || iframe.readyState === 'interactive'
     )
   ) {
+    if (typeof callback === 'function') {
+      callback(iframe)
+    }
+  } else if (iframe.contentWindow) {
     if (typeof callback === 'function') {
       callback(iframe)
     }
