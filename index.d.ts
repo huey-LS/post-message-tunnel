@@ -3,7 +3,11 @@ export default class PostMessageTunnel {
     whiteList: string[],
     isServer?: boolean,
     target?: string|HTMLIFrameElement
+    maxCheckReady?: number;
+    checkReadyTime?: number;
   });
+
+  targetIframe?: HTMLIFrameElement;
 
   ready (
     callback: () => void

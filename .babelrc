@@ -10,9 +10,6 @@
             "useBuiltIns": "entry"
           }
         ]
-      ],
-      "plugins": [
-        ["transform-remove-console", { "exclude": [ "error", "warn" ] }]
       ]
     },
     "es": {
@@ -23,9 +20,6 @@
             "useBuiltIns": "entry"
           }
         ]
-      ],
-      "plugins": [
-        ["transform-remove-console", { "exclude": [ "error", "warn" ] }]
       ]
     }
   }

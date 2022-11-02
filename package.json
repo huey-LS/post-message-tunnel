@@ -9,7 +9,6 @@
   "files": [
     "lib",
     "es",
-    "src",
     "index.js",
     "index.d.ts"
   ],
