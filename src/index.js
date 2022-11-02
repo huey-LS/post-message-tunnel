@@ -15,6 +15,7 @@ var MessageTunnel = function (options) {
   this.__listeners = [];
   this.whiteList = options.whiteList || [];
   this._callbackWaitingReceipt = {};
+  this.__options = options;
 
   if (options.target) {
     this.createTarget(options.target, options.origin)
@@ -63,7 +64,10 @@ MessageTunnel.prototype.listenMessage = function () {
       if (message.name === EVENT_NAME_CHECK_READY) {
         // 如果是检测是否完成的消息
         // _self.postReceipt(message);
-        _self.createTarget(source, origin);
+        _self.createTarget(
+          source,
+          _self.__options.origin || origin
+        );
         receipt();
       } else if (message.name === EVENT_NAME_RECEIPT) {
         // 如果是回执
@@ -80,12 +84,14 @@ MessageTunnel.prototype.listenMessage = function () {
     }
   }
 
+  this.__callback = callback;
+
   if(window.addEventListener) {
     logger.log('use window.addEventListener');
     window.addEventListener('message', callback, false)
   } else if (window.attachEvent) {
     logger.log('use window.attachEvent');
-    window.attachEvent('message', callback);
+    window.attachEvent('onmessage', callback);
   }
 }
 
@@ -94,7 +100,7 @@ MessageTunnel.prototype.createTarget = function (target, origin) {
   logger.log('message: create target', target, origin);
   if (this.targetIframe || this._target) return false;
   if (typeof target === 'string') {
-    this._targetOrigin = getOrigin(target)
+    this._targetOrigin = origin || getOrigin(target)
     createIframe(target, function (iframe) {
       logger.log('message: iframe onload', target);
       _self.targetIframe = iframe;
@@ -197,6 +203,18 @@ MessageTunnel.prototype.doReceiptCallback = function (message) {
     } catch (e) {
       logger.error(e);
     }
+  }
+}
+
+MessageTunnel.prototype.destroy = function () {
+  this._destroyed = true;
+
+  if(window.removeEventListener) {
+    logger.log('use window.removeEventListener');
+    window.removeEventListener('message', this.__callback, false)
+  } else if (window.detachEvent) {
+    logger.log('use window.detachEvent');
+    window.detachEvent('onmessage', this.__callback);
   }
 }
 

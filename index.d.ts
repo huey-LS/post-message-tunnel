@@ -32,7 +32,6 @@ export default class PostMessageTunnel {
   ): void;
 
   subscribe (
-    eventName: string,
     callback: (
       options: {
         message: any,
@@ -40,4 +39,6 @@ export default class PostMessageTunnel {
       }
     ) => void
   ): void;
+
+  destroy (): void;
 }
