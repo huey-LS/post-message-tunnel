@@ -12,6 +12,7 @@
 ```js
 var messageTunnel = new PostMessageTunnel({
   whiteList: ['xxx.com'],
+  origin: '*',
   target: '/child.html'
 })
 
@@ -27,6 +28,7 @@ messageTunnel.ready(function () {
 ```js
 var messageTunnel = new PostMessageTunnel({
   whiteList: ['xxx.com'],
+  origin: '*',
   isServer: true
 })
 
