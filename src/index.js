@@ -9,7 +9,7 @@ var MessageTunnel = function (options) {
   options = options || {};
   createFinishQueue(this);
   this.pubSub = new PubSub();
-  this.maxCheckReady = options.maxCheckReady || 2;
+  this.maxCheckReady = options.maxCheckReady || 10;
   this.checkReadyTime = options.checkReadyTime || 1000;
   this.__checkReadyCount = 0;
   this.__listeners = [];
@@ -63,11 +63,8 @@ MessageTunnel.prototype.listenMessage = function () {
 
       if (message.name === EVENT_NAME_CHECK_READY) {
         // 如果是检测是否完成的消息
-        // _self.postReceipt(message);
-        _self.createTarget(
-          source,
-          _self.__options.origin || origin
-        );
+        // ready消息，只需要直接回复
+        _self.bindSource(source, origin);
         receipt();
       } else if (message.name === EVENT_NAME_RECEIPT) {
         // 如果是回执
@@ -93,6 +90,13 @@ MessageTunnel.prototype.listenMessage = function () {
     logger.log('use window.attachEvent');
     window.attachEvent('onmessage', callback);
   }
+}
+
+MessageTunnel.prototype.bindSource = function (source, origin) {
+  var _self = this;
+  logger.log('message: bind source', source, origin);
+  this.target = source;
+  this._targetOrigin = origin || getOrigin(target);
 }
 
 MessageTunnel.prototype.createTarget = function (target, origin) {
@@ -162,7 +166,10 @@ MessageTunnel.prototype.checkTargetReady = function () {
   this.targetIframe.contentWindow.postMessage(message.format(), this._targetOrigin);
 
   this.__checkReadyCount = this.__checkReadyCount + 1;
-  if (this.maxCheckReady > this.__checkReadyCount) {
+  if (
+    this.maxCheckReady === -1
+    || this.maxCheckReady > this.__checkReadyCount
+  ) {
     setTimeout(function () {
       if (!_self.isFinishQueueReady()) {
         _self.checkTargetReady();
@@ -273,7 +280,7 @@ function isInWhiteList (origin, whiteList) {
   var i = 0;
   var len = whiteList.length;
   for(; i < len; i++) {
-    var reg = new RegExp('(^|\\.|//)' + whiteList[i].replace('.', '\\.') + '$');
+    var reg = new RegExp('(^|\\.|//)' + whiteList[i].replace(/\./g, '\\.') + '$');
     if (reg.test(originWithoutPort)) {
       return true;
     }
